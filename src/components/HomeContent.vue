@@ -31,23 +31,29 @@ export default {
   },
   methods: {
     async orderPizza() {
-      const accessToken = await this.$auth.getTokenSilently();
+      const accessToken = await this.$auth.getTokenSilently({
+        aud:'https://dev-rosenfeld.auth0.com/userinfo',
+        scope: 'openid email'
+      });
+      const claims = await this.$auth.getIdTokenClaims();
+      console.log(claims.__raw);
 
       try {
         await this.$http({
           method: 'post',
-          url: 'https://httpbin.org/post',
+          //url: 'https://httpbin.org/post',
+          url: 'http://localhost:8080/orderPizza',
           data: {
             type: 'salami',
             amount: 3
           },
           headers: {
-            Authorization: `Bearer ${accessToken}`
+            Authorization: `Bearer ${claims.__raw}`
           }
         })
         .then(response => {
           console.log(response);
-          var message = "Thank you! You ordered " + response.data.json.amount + " " + response.data.json.type + " pizzas.";
+          var message = "Thank you! You ordered " + response.data.amount + " " + response.data.type + " pizzas.";
           alert(message);
         });
       } catch (e) {

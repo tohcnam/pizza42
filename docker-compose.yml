@@ -1,0 +1,41 @@
+version: "2"
+
+services:
+  auth0-pizza42:
+    build: .
+    image: auth0-pizza42
+    ports:
+      - 3000:3000
+  # MySQL for API Gateway
+  mysql:
+    image: mysql:5.7
+    volumes:
+       - ./mysqlconf:/etc/mysql/conf.d
+       - ./mysqldatadir:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=7layer
+    command:
+      - "--character-set-server=utf8"
+      - "--innodb_log_buffer_size=32M"
+      - "--innodb_log_file_size=80M"
+      - "--max_allowed_packet=8M"
+#Layer 7
+  ssg:
+    image: caapim/gateway:9.4.00
+    ports:
+      - "0.0.0.0:8080:8080"
+      - "0.0.0.0:8443:8443"
+      - "0.0.0.0:9443:9443"
+    volumes:
+      - /opt/SecureSpan/Gateway/node/default/etc/bootstrap/services/restman
+      - ./license.xml:/opt/SecureSpan/Gateway/node/default/etc/bootstrap/license/license.xml
+    environment:
+      ACCEPT_LICENSE: "true"
+      SSG_ADMIN_USERNAME: "admin"
+      SSG_ADMIN_PASSWORD: "7layer"
+      SSG_DATABASE_JDBC_URL: "jdbc:mysql://mysql:3306/ssg"
+      SSG_DATABASE_USER: "root"
+      SSG_DATABASE_PASSWORD: "7layer"
+      SSG_CLUSTER_HOST: "ssg9.docker.l7tech.com"
+      SSG_CLUSTER_PASSWORD: "7layer"
+
